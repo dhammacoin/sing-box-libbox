@@ -6,11 +6,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version: '1.24' # Устанавливаем версию, которую требует твой лог
           check-latest: true
 
       - name: Set up JDK 17
@@ -19,21 +19,23 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Fix and Build
+      - name: Install Tools and Dependencies
         run: |
-          # 1. Устанавливаем всё, на что он ругался в логах
+          # 1. Принудительно ставим инструменты и тот самый 'bind'
           go install golang.org/x/mobile/cmd/gomobile@latest
           go get golang.org/x/mobile/bind
           gomobile init
           
-          # 2. Подтягиваем зависимости самого проекта
+          # 2. Обновляем модули проекта
           go mod tidy
-          
-          # 3. Собираем. Используем флаг ./constant, так как эта папка у тебя есть
+
+      - name: Build AAR
+        run: |
+          # 3. Собираем библиотеку из папки constant (она видна у тебя в корне)
           gomobile bind -v -androidapi 21 -ldflags="-s -w" ./constant
           
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: libbox-aar
+          name: sing-box-lib
           path: ./*.aar
