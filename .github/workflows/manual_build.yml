@@ -10,7 +10,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24' # Обновили до версии, которую просит лог
+          go-version: '1.24'
           check-latest: true
 
       - name: Set up JDK 17
@@ -19,22 +19,20 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Install Tools and Dependencies
+      - name: Fix and Build
         run: |
-          # Устанавливаем gomobile и принудительно подтягиваем пакет bind
+          # 1. Устанавливаем всё, на что он ругался в логах
           go install golang.org/x/mobile/cmd/gomobile@latest
           go get golang.org/x/mobile/bind
           gomobile init
           
-          # Очищаем модули и скачиваем зависимости
+          # 2. Подтягиваем зависимости самого проекта
           go mod tidy
-
-      - name: Build AAR
-        run: |
-          # Собираем пакет constant (он виден на твоем скриншоте 18:40)
+          
+          # 3. Собираем. Используем флаг ./constant, так как эта папка у тебя есть
           gomobile bind -v -androidapi 21 -ldflags="-s -w" ./constant
           
-      - name: Upload Artifact
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: libbox-aar
